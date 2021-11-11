@@ -1,16 +1,31 @@
-# This is a sample Python script.
+import random
+import os
+import sys
+import torch.backends.cudnn as cudnn
+import torch.optim as optim
+import torch.utils.data
+import numpy as np
+from model import CNNModel
+import matplotlib.pyplot as plt
+from dataset_preprocess import data, label
+from sklearn.model_selection import train_test_split
+import sklearn
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+"""#######################################
+     parameter setting
+    #######################################"""
+batch_size = 32
+"""#######################################
+     import and load datasets
+    #######################################"""
+
+x_train, x_test, y_train, y_test = train_test_split(data, label, test_size=0.3, random_state=42)
+#torch.utils.data.DataLoader(src_data,batch_size=batch_size,shuffle=True,num_workers=0)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+#if __name__ == '__main__':
+#
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
