@@ -3,6 +3,8 @@ import numpy as np
 import os
 import cv2 as cv
 import matplotlib.pyplot as plt
+from PIL import Image
+import pickle
 
 root = './dataset/image/'
 CATEGORY_INDEX = {
@@ -33,21 +35,17 @@ def make_raw_dataset(root,rawlist):
     for j in range(len(filename)):
         folder_path = os.path.join(root, filename[j])
         image = cv.imread(folder_path)
+        image = Image.fromarray(np.array(image))
+        image = image.convert("L")
+        image = np.array(image.getdata(),dtype=np.uint8).reshape((512, 512))
         dataset.append(image)
     return dataset, label
 
 
 
-
-
-
-
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     FileList = pd.read_csv("./dataset/binary_label.csv")
     data,label = make_raw_dataset(root, FileList)
 
-
-
-
-
+    pickle.dump(data, open("./dataset/data.p" , "wb"))
+    pickle.dump(label, open("./dataset/label.p", "wb"))
