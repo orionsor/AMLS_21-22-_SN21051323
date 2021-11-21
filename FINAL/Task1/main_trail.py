@@ -16,8 +16,8 @@ CATEGORY_INDEX = {
     "negative": 0,
     "positive": 1
 }
-root = './dataset/image/'
-directory = './dataset/binary_label.csv'
+root = './dataset/image_trail/'
+directory = './dataset/binary_trail.csv'
 
 
 
@@ -32,66 +32,84 @@ class VGG_16(nn.Module):
     def __init__(self):
         super(VGG_16, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 64, 3, 2, 113),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, 2, 113),
-            nn.ReLU(),
+            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         self.layer2 = nn.Sequential(
-            nn.Conv2d(64, 128, 3, 2, 57),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, 3, 2, 57),
-            nn.ReLU(),
+            nn.Conv2d(64, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         self.layer3 = nn.Sequential(
-            nn.Conv2d(128, 256, 3, 2, 29),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, 3, 2, 29),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, 3, 2, 29),
-            nn.ReLU(),
+            nn.Conv2d(128, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         self.layer4 = nn.Sequential(
-            nn.Conv2d(256, 512, 3, 2, 15),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, 2, 15),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, 2, 15),
-            nn.ReLU(),
+            nn.Conv2d(256, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         self.layer5 = nn.Sequential(
-            nn.Conv2d(512, 512, 3, 2, 8),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, 2, 8),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, 3, 2, 8),
-            nn.ReLU(),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)
         )
         self.layer6 = nn.Sequential(
-            nn.Linear(7 * 7 * 512, 1024),
+            nn.Linear(7 * 7 * 512, 512),
             #nn.BatchNorm1d(1024, momentum=0.9),
             nn.LeakyReLU(0.2, True),
-            nn.Dropout(),
+            nn.Dropout(0.5),
             #nn.ReLU(True),
-            nn.Linear(1024, 1024),
+            nn.Linear(512, 512),
             #nn.BatchNorm1d(1024, momentum=0.9),
             nn.LeakyReLU(0.2, True),
-            nn.Dropout(),
-            nn.Linear(1024, 2),
+            nn.Dropout(0.5),
+            nn.Linear(512, 2),
             nn.LogSoftmax(dim=1)
         )
 
     def forward(self, x):
         x = self.layer1(x)
+        #print("layer1:",x)
         x = self.layer2(x)
+        #print("layer2:",x)
         x = self.layer3(x)
+        #print("layer3:",x)
         x = self.layer4(x)
+        #print("layer4:",x)
         x = self.layer5(x)
+        #print("layer5:",x)
         x = x.view(x.size(0), -1)
         output = self.layer6(x)
 
@@ -103,7 +121,7 @@ if __name__ == '__main__':
 
     #load dataset
     dataset_all = raw_dataset(root, directory)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[2100, 900],generator=torch.Generator().manual_seed(0))
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[210, 91],generator=torch.Generator().manual_seed(0))
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, num_workers=0)
     #load model
@@ -112,7 +130,8 @@ if __name__ == '__main__':
     model = model.to(device)
     #########parameter setting############
     n_epoch = 8
-    criterion = nn.CrossEntropyLoss()
+    #criterion = nn.CrossEntropyLoss()
+    criterion = torch.nn.NLLLoss()
     learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     train_loss = []

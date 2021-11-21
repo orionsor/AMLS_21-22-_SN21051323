@@ -23,17 +23,28 @@ class raw_dataset(Dataset):
         self.img, self.label = self.read_dataset(directory)
         self.root = root
         self.transforms = T.Compose([
-            T.Resize([224,224]),
-            T.CenterCrop(224),
-            T.ToTensor(),
+            T.ToTensor()
         ])
 
     def __getitem__(self, index):
         img_path = os.path.join(self.root,self.img[index])
-        data = Image.open(img_path)
-        if data.mode != "RGB":
-            data = data.convert("RGB")
+        #data = Image.open(img_path)
+        data = cv.imread(img_path)
+        data = Image.fromarray(np.array(data))
+        data = data.convert("RGB")
+        #test = np.array(data)
+        image = data.resize((224, 224), Image.ANTIALIAS)
+        image = np.array(image, dtype=np.float32)
+        #cv.imshow("Image",image)
+        #cv.waitKey(0)
+        #image = np.reshape(data,(224, 224,3))
+        #image = np.array(image, dtype=np.uint8)
+        #if data.mode != "RGB":
+        #    data = data.convert("RGB")
         image = self.transforms(data)
+        #image = torch.from_numpy(image)
+        #image = image.numpy()
+        #image = torch.Tensor(image)
         labels = self.label[index]
         return image, labels
 
