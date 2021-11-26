@@ -7,7 +7,7 @@ import torch.utils.data
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import dataset, dataloader
-from dataset_cnn import *
+from dataset_trail import *
 import sys
 
 
@@ -32,7 +32,7 @@ class VGG_16(nn.Module):
     def __init__(self):
         super(VGG_16, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.Conv2d(1, 64, 3, 1, 1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, 3, 1, 1),
@@ -95,8 +95,8 @@ class VGG_16(nn.Module):
             #nn.BatchNorm1d(1024, momentum=0.9),
             nn.LeakyReLU(0.2, True),
             nn.Dropout(0.5),
-            nn.Linear(512, 2),
-            nn.LogSoftmax(dim=1)
+            nn.Linear(512, 1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -112,7 +112,8 @@ class VGG_16(nn.Module):
         #print("layer5:",x)
         x = x.view(x.size(0), -1)
         output = self.layer6(x)
-
+        output = output.squeeze(-1)
+        output = output.float()
 
         return output
 
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     dataset_all = raw_dataset(root, directory)
     train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[210, 91],generator=torch.Generator().manual_seed(0))
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=0)
     #load model
     model = VGG_16()
     device = torch.device('cpu')
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     #########parameter setting############
     n_epoch = 8
     #criterion = nn.CrossEntropyLoss()
-    criterion = torch.nn.NLLLoss()
+    criterion = torch.nn.BCELoss()
     learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     train_loss = []
@@ -146,6 +147,7 @@ if __name__ == '__main__':
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
+            target = target.float()
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
@@ -155,7 +157,7 @@ if __name__ == '__main__':
                 '\r epoch: %d, [iter: %d / all %d], loss: %f' \
                 % (epoch, batch_idx + 1, len_dataloader, loss.detach().numpy()))
             sys.stdout.flush()
-            torch.save(model, '{0}/modelterm.pth'.format('./'))
+            torch.save(model, '{0}/modelterm_trail.pth'.format('./'))
 
 
         # val
@@ -169,6 +171,12 @@ if __name__ == '__main__':
             for batch_idx, (data, target) in enumerate(test_loader):
                 data, target = data.to(device), target.to(device)
                 output = model(data)
+                output = torch.unsqueeze(output,0)
+                for i in output:
+                    if i >= 0.5:
+                        predicted = 1
+                    else:
+                        predicted = 0
                 _, predicted = torch.max(output.data, dim=1)
                 total += target.size(0)
                 correct += (predicted == target).sum().item()
@@ -177,7 +185,7 @@ if __name__ == '__main__':
         print('Accuracy of current epoch: %f' % (acc_val))
         # save model
         if acc_val == max(test_accuracy):
-            torch.save(model, '{0}/modelterm_best.pth'.format('./'))
+            torch.save(model, '{0}/modelterm_best_trail.pth'.format('./'))
 
         print("epoch = {},  loss = {},  acc_val = {}".format(epoch, loss_aver, acc_val))
 

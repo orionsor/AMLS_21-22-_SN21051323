@@ -31,7 +31,7 @@ class raw_dataset(Dataset):
         #data = Image.open(img_path)
         data = cv.imread(img_path)
         data = Image.fromarray(np.array(data))
-        data = data.convert("RGB")
+        data = data.convert("L")
         #test = np.array(data)
         image = data.resize((224, 224), Image.ANTIALIAS)
         image = np.array(image, dtype=np.uint8)
