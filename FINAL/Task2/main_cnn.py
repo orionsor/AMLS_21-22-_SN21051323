@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import dataset, dataloader
 from dataset_cnn import *
 import sys
-
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 CATEGORY_INDEX = {
     "no_tumor": 0,
@@ -124,10 +125,10 @@ if __name__ == '__main__':
     device = torch.device('cpu')
     model = model.to(device)
     #########parameter setting############
-    n_epoch = 3
+    n_epoch = 30
     criterion = nn.CrossEntropyLoss()
     learning_rate = 1e-4
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,betas=[0.9,0.999],eps=1e-08)
     train_loss = []
     test_accuracy = []
     best_accu = 0.0
