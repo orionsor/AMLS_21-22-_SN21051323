@@ -86,17 +86,17 @@ class VGG_16(nn.Module):
             nn.MaxPool2d(2, 2)
         )
         self.layer6 = nn.Sequential(
-            nn.Linear(7 * 7 * 512, 512),
+            nn.Linear(7 * 7 * 512, 4096),
             #nn.BatchNorm1d(1024, momentum=0.9),
-            nn.LeakyReLU(0.2, True),
-            nn.Dropout(0.5),
+            nn.ReLU(),
+            #nn.Dropout(0.5),
             #nn.ReLU(True),
-            nn.Linear(512, 512),
+            nn.Linear(4096, 4096),
             #nn.BatchNorm1d(1024, momentum=0.9),
-            nn.LeakyReLU(0.2, True),
+            nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(512, 1),
-            nn.Sigmoid()
+            nn.Linear(4096, 2),
+            #nn.Softmax()
         )
 
     def forward(self, x):
@@ -112,8 +112,8 @@ class VGG_16(nn.Module):
         #print("layer5:",x)
         x = x.view(x.size(0), -1)
         output = self.layer6(x)
-        output = output.squeeze(-1)
-        output = output.float()
+        #output = output.squeeze(-1)
+        #output = output.float()
 
         return output
 
@@ -122,9 +122,9 @@ if __name__ == '__main__':
 
     #load dataset
     dataset_all = raw_dataset(root, directory)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[210, 91],generator=torch.Generator().manual_seed(0))
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[240, 61],generator=torch.Generator().manual_seed(0))
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=0)
     #load model
     model = VGG_16()
     device = torch.device('cpu')
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     #########parameter setting############
     n_epoch = 8
     #criterion = nn.CrossEntropyLoss()
-    criterion = torch.nn.BCELoss()
+    criterion = torch.nn.CrossEntropyLoss()
     learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     train_loss = []
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
-            target = target.float()
+            #target = target.float()
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
@@ -171,12 +171,12 @@ if __name__ == '__main__':
             for batch_idx, (data, target) in enumerate(test_loader):
                 data, target = data.to(device), target.to(device)
                 output = model(data)
-                output = torch.unsqueeze(output,0)
-                for i in output:
-                    if i >= 0.5:
-                        predicted = 1
-                    else:
-                        predicted = 0
+                #output = torch.unsqueeze(output,0)
+                #for i in output:
+                #    if i >= 0.5:
+                #        predicted = 1
+                #    else:
+                #        predicted = 0
                 _, predicted = torch.max(output.data, dim=1)
                 total += target.size(0)
                 correct += (predicted == target).sum().item()
