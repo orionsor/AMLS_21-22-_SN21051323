@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from dataset_rgb import *
 import sys
+from pytorchtool import EarlyStopping
 
 start=time.time()
 
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     device = torch.device('cpu')
     model = model.to(device)
     #########parameter setting############
-    n_epoch = 40
+    n_epoch = 50
     learning_rate = 0.0002
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,betas=[0.9,0.999],eps=1e-08,)
     loss_fn = nn.CrossEntropyLoss()
@@ -171,15 +172,26 @@ if __name__ == '__main__':
     test_loss=[]
     test_acc=[]
 
+    early_stopping = EarlyStopping(patience=10, verbose=True)
     for epoch in range(n_epoch):
         epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_loader,test_loader)
         train_loss.append(epoch_loss)
         train_acc.append(epoch_acc)
         test_loss.append(epoch_test_loss)
         test_acc.append(epoch_test_acc)
-        if epoch_test_acc == max(test_acc):
-            torch.save(model, '{0}/modelterm_best_res.pth'.format('./'))
 
+        early_stopping(epoch_test_loss, model)
+
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
+        #if epoch_test_acc == max(test_acc):
+        #    torch.save(model, '{0}/modelterm_best_res.pth'.format('./'))
+
+    model.load_state_dict(torch.load('checkpoint.pt'))
+    torch.save(model, '{0}/modelterm_best_res.pth'.format('./'))
+
+    print("\nbest train accuracy:", max(train_acc))
     print("\nbest test accuracy:",max(test_acc))
 
     end = time.time()
@@ -191,22 +203,23 @@ if __name__ == '__main__':
     #plt.plot(range(1,n_epoch+1),test_acc,label='test_acc')
 
     #x_epoch = np.arange(0, n_epoch, 1)
+    n = len(test_acc)
     plt.figure(1)
     plt.subplot(121)
     plt.subplots_adjust(wspace=0.5)
     plt.xlabel('epoch')
     plt.ylabel('loss')
-    plt.plot(range(1, n_epoch + 1), train_loss, label='train_loss',color = 'k')
-    plt.plot(range(1, n_epoch + 1), test_loss, label='test_loss',color = 'r')
+    plt.plot(range(1, n+1), train_loss, label='train_loss',color = 'k')
+    plt.plot(range(1, n+1), test_loss, label='test_loss',color = 'r')
     plt.legend()
     plt.title('loss')
     plt.subplot(122)
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
     plt.title('accuracy')
-    plt.plot(range(1,n_epoch+1),train_acc,label='train_acc',color = 'k')
-    plt.plot(range(1,n_epoch+1),test_acc,label='test_acc',color = 'r')
-
+    plt.plot(range(1,n+1),train_acc,label='train_acc',color = 'k')
+    plt.plot(range(1,n+1),test_acc,label='test_acc',color = 'r')
+188218765
     plt.legend()
     plt.savefig('./plot_res.jpg')
     plt.show()

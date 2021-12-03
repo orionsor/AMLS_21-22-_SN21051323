@@ -147,8 +147,8 @@ if __name__ == '__main__':
     #train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[240, 61],
     #                                                            generator=torch.Generator().manual_seed(3))
     train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[2400, 600],generator=torch.Generator().manual_seed(0))
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, num_workers=0)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True, num_workers=0)
     #load model
     #model = VGG_16()
     device = torch.device('cpu')
@@ -205,5 +205,3 @@ if __name__ == '__main__':
     plt.show()
 
 
-
-    plt.show()
