@@ -19,10 +19,8 @@ from pytorchtool import EarlyStopping
 start=time.time()
 
 CATEGORY_INDEX = {
-    "no_tumor": 0,
-    "meningioma_tumor": 1,
-    "pituitary_tumor":2,
-    "glioma_tumor":3
+    "negative": 0,
+    "positive": 1
 }
 root = './dataset/image/'
 directory = './dataset/binary_label.csv'
@@ -48,9 +46,9 @@ def fit(epoch,model,trainloader,testloder):
         print("\norigin-target",y)
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
-
+        # clear the gradient
         optimizer.zero_grad()
-
+        # back propagation
         loss.backward()
         #for name, param in model.named_parameters():
         #    print('\nlayer:', name, param.size())
@@ -59,13 +57,13 @@ def fit(epoch,model,trainloader,testloder):
 
         # 优化
         optimizer.step()
-        # 不需要进行梯度计算
+
 
         with torch.no_grad():
-
+            #convert torch to real target
             y_pred = torch.argmax(y_pred, dim=1)
             print("\ntrain-result:",y_pred)
-
+            #calculate accuracy
             correct += (y_pred == y).sum().item()
             total += y.size(0)
             running_loss += loss.item()
@@ -84,11 +82,11 @@ def fit(epoch,model,trainloader,testloder):
     test_total = 0
     test_running_loss = 0
 
-
+    #model.eval(), no dropout
     model.eval()
     with torch.no_grad():
         for x,y in testloder:
-
+            #move data to device
             x = x.to(device)
             y = y.to(device)
             print("\ntest-origin",y)
@@ -118,16 +116,16 @@ def fit(epoch,model,trainloader,testloder):
 if __name__ == '__main__':
 
 
-    model = torchvision.models.resnet18(pretrained=False)
+    model = torchvision.models.resnet34(pretrained=False)
     print(model)
     model = model.to(device)
 
     #for p in model.features.parameters():
-
+    #    # freeze part parameters
     #    p.requires_grad = False
 
 
-    # change out_features from 1000 to 2
+    # change out_features from 1000 to 4
     model.fc.out_features = 2
     #model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
     #print(model)
@@ -138,7 +136,7 @@ if __name__ == '__main__':
 
 
 
-
+    # 只需要优化model.classifier的参数
     #optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=0.0001)
     #optimizer = torch.optim.AdamW(model.parameters(), lr=0.0001)
 
@@ -157,7 +155,7 @@ if __name__ == '__main__':
     device = torch.device('cpu')
     model = model.to(device)
     #########parameter setting############
-    n_epoch = 40
+    n_epoch = 50
     learning_rate = 0.0002
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,betas=[0.9,0.999],eps=1e-08,)
     loss_fn = nn.CrossEntropyLoss()
@@ -171,6 +169,7 @@ if __name__ == '__main__':
     train_acc=[]
     test_loss=[]
     test_acc=[]
+
     early_stopping = EarlyStopping(patience=7, verbose=True)
     for epoch in range(n_epoch):
         epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_loader,test_loader)
@@ -185,11 +184,11 @@ if __name__ == '__main__':
             print("Early stopping")
             print("stop at epoch", epoch)
             break
-        # if epoch_test_acc == max(test_acc):
+        #if epoch_test_acc == max(test_acc):
         #    torch.save(model, '{0}/modelterm_best_res.pth'.format('./'))
 
     model.load_state_dict(torch.load('checkpoint.pt'))
-    torch.save(model, '{0}/modelterm_best_res18.pth'.format('./'))
+    torch.save(model, '{0}/modelterm_best_res34.pth'.format('./'))
 
     print("\nbest train accuracy:", max(train_acc))
     print("\nbest test accuracy:",max(test_acc))
@@ -201,15 +200,16 @@ if __name__ == '__main__':
     #plt.plot(range(1,n_epoch+1),test_loss,label='test_loss')
     #plt.plot(range(1,n_epoch+1),train_acc,label='train_acc')
     #plt.plot(range(1,n_epoch+1),test_acc,label='test_acc')
-    n = len(test_acc)
+
     #x_epoch = np.arange(0, n_epoch, 1)
+    n = len(test_acc)
     plt.figure(1)
     plt.subplot(121)
     plt.subplots_adjust(wspace=0.5)
     plt.xlabel('epoch')
     plt.ylabel('loss')
-    plt.plot(range(1, n + 1), train_loss, label='train_loss',color = 'k')
-    plt.plot(range(1, n + 1), test_loss, label='test_loss',color = 'r')
+    plt.plot(range(1, n+1), train_loss, label='train_loss',color = 'k')
+    plt.plot(range(1, n+1), test_loss, label='test_loss',color = 'r')
     plt.legend()
     plt.title('loss')
     plt.subplot(122)
@@ -220,7 +220,7 @@ if __name__ == '__main__':
     plt.plot(range(1,n+1),test_acc,label='test_acc',color = 'r')
 
     plt.legend()
-    plt.savefig('./plot_res18.jpg')
+    plt.savefig('./plot_res34.jpg')
     plt.show()
 
 
