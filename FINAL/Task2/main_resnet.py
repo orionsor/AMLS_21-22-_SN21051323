@@ -184,6 +184,7 @@ if __name__ == '__main__':
 
         if early_stopping.early_stop:
             print("Early stopping")
+            print("stop at epoch", epoch)
             break
         #if epoch_test_acc == max(test_acc):
         #    torch.save(model, '{0}/modelterm_best_res.pth'.format('./'))
@@ -219,7 +220,7 @@ if __name__ == '__main__':
     plt.title('accuracy')
     plt.plot(range(1,n+1),train_acc,label='train_acc',color = 'k')
     plt.plot(range(1,n+1),test_acc,label='test_acc',color = 'r')
-188218765
+
     plt.legend()
     plt.savefig('./plot_res.jpg')
     plt.show()
