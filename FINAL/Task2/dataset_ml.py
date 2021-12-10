@@ -1,0 +1,53 @@
+import pandas as pd
+import numpy as np
+import os
+import cv2 as cv
+import matplotlib.pyplot as plt
+from PIL import Image
+import pickle
+
+root = './dataset/image/'
+CATEGORY_INDEX = {
+    "no_tumor": 0,
+    "meningioma_tumor": 1,
+    "pituitary_tumor":2,
+    "glioma_tumor":3
+}
+def make_raw_dataset(root,rawlist):
+    """#######################################
+    导入并解析源域可见光数据，生成原始数据文件
+    input：
+
+    output：
+
+    note：
+
+    #######################################"""
+
+    dataset = []
+
+    filename = rawlist['file_name'].values
+    filename = (filename).tolist()
+    raw_label = rawlist['label'].values
+    raw_label = (raw_label).tolist()
+    label = []
+    for i in range(len(raw_label)):
+        label.append(CATEGORY_INDEX[raw_label[i]])
+
+    for j in range(len(filename)):
+        folder_path = os.path.join(root, filename[j])
+        image = cv.imread(folder_path)
+        image = Image.fromarray(np.array(image))
+        image = image.convert("L")
+        image = np.array(image.getdata(),dtype=np.uint8).reshape((512, 512))
+        dataset.append(image)
+    return dataset, label
+
+
+
+if __name__ == "__main__":
+    FileList = pd.read_csv("./dataset/label.csv")
+    data,label = make_raw_dataset(root, FileList)
+
+    pickle.dump(data, open("./dataset/data.p" , "wb"))
+    pickle.dump(label, open("./dataset/label.p", "wb"))
