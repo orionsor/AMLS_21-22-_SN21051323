@@ -7,6 +7,12 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 import pickle
 from sklearn import preprocessing
+from sklearn.decomposition import PCA, NMF
+from sklearn.feature_selection import SelectKBest, chi2
+from pylab import *
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import make_pipeline
 
 """#######################################
      parameter setting
@@ -44,11 +50,14 @@ def load_data(root):
 
 
 def classifier():
-    clf = svm.SVC(C=1,
-                  kernel='rbf',
-                  decision_function_shape='ovo')
+    #clf = svm.SVC(C=1,
+    #              kernel='rbf',
+    #              decision_function_shape='ovo')
+    pca = PCA(n_components=150, whiten=True, random_state=42)
+    svc = svm.SVC(kernel='rbf', class_weight='balanced')
+    model = make_pipeline(pca, svc)
     #clf = svm.LinearSVC()
-    return clf
+    return model
 
 
 def train(clf, x_train, y_train):
@@ -70,22 +79,58 @@ def print_accuracy(clf, x_train, y_train, x_test, y_test):
 
 
 
+#from sklearn.decomposition import PCA
+
+#pca = PCA(n_components=2)
+#1_2
+#_component = pca.fit_transform(df.values)
+
+#pca_1_2 = pd.DataFrame(np.dot(df.values, eigenvector[0:2].T))
+#pca_1_2['categories'] = output.values
+
+#sns.set(rc={'figure.figsize': (11, 8)})
+#ax = sns.scatterplot(data=pca_1_2, x=0, y=1, hue='categories', s=40,
+#                     palette={0: 'r', 1: 'b', 2: 'g', 3: 'purple', 4: 'orange'})
+
 
 
 if __name__ == '__main__':
     data,label = load_data(root)
     x_train, x_test, y_train, y_test = train_test_split(data, label, test_size=0.3, random_state=0)
-    clf = classifier()
     x_train = np.array(x_train)
     x_test = np.array(x_test)
     y_train = np.array(y_train)
     y_test = np.array(y_test)
-    train(clf, preprocessing.scale(x_train.reshape(2100,-1)), y_train)
-    print_accuracy(clf, preprocessing.scale(x_train.reshape(2100,-1)), y_train, preprocessing.scale(x_test.reshape(900,-1)), y_test)
-    print('training prediction:%.3f' % (clf.score(preprocessing.scale(x_train.reshape(2100,-1)), y_train)))
-    print('test data prediction:%.3f' % (clf.score(preprocessing.scale(x_test.reshape(900,-1)), y_test)))
+    model = classifier()
+    print(model.get_params().keys())
+    param_grid = {'svc__C': [1, 5, 10],
+                  'svc__gamma': [0.0001, 0.0005, 0.001],
+                  'svc__kernel': ['linear','poly','rbf']}
+    grid = GridSearchCV(model, param_grid)
+    grid.fit(preprocessing.scale(x_train.reshape(2100,-1)), y_train)
+    print(grid.best_params_)
+    model = grid.best_estimator_
+    y_predict = model.predict(preprocessing.scale(x_test.reshape(900,-1)))
+    #fig, ax = plt.subplots(4, 6)
+    #for i, axi in enumerate(ax.flat):
+    #    axi.imshow(x_test[i].reshape(512, 512), cmap='bone')
+    #    axi.set(xticks=[], yticks=[])
+    #    axi.set_ylabel(CATEGORY_INDEX[y_predict[i]],
+    #                   color='black' if y_predict[i] == y_test[i] else 'red')
+    #fig.suptitle('Predicted Names; Incorrect Labels in Red', size=14)
+    #fig.show()
 
 
 
+    print(classification_report(y_test, y_predict))
 
 
+
+    #x_train = np.array(x_train)
+    #x_test = np.array(x_test)
+    #y_train = np.array(y_train)
+    #y_test = np.array(y_test)
+    #train(clf, preprocessing.scale(x_train.reshape(2100,-1)), y_train)
+    #print_accuracy(clf, preprocessing.scale(x_train.reshape(2100,-1)), y_train, preprocessing.scale(x_test.reshape(900,-1)), y_test)
+    #print('training prediction:%.3f' % (clf.score(preprocessing.scale(x_train.reshape(2100,-1)), y_train)))
+    #print('test data prediction:%.3f' % (clf.score(preprocessing.scale(x_test.reshape(900,-1)), y_test)))

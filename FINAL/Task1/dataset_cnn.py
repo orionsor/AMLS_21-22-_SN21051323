@@ -23,7 +23,8 @@ class raw_dataset(Dataset):
         self.img, self.label = self.read_dataset(directory)
         self.root = root
         self.transforms = T.Compose([
-            T.ToTensor()
+            T.ToTensor(),
+            T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
     def __getitem__(self, index):
