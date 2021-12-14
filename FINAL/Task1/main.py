@@ -79,6 +79,11 @@ def print_accuracy(clf, x_train, y_train, x_test, y_test):
 
 
 
+
+#ax.scatter(Y[:,0][y == 0], Y[:,1][y == 0], marker='o', s=50, label='Bern')
+#ax.scatter(Y[:,0][y == 1], Y[:,1][y == 1], marker='x', s=10, label='Perth')
+
+
 #from sklearn.decomposition import PCA
 
 #pca = PCA(n_components=2)

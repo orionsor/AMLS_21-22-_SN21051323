@@ -56,10 +56,9 @@ def classifier():
     #clf = svm.SVC(C=1,
     #              kernel='rbf',
     #              decision_function_shape='ovo')
-    pca = PCA(n_components=150, whiten=True, random_state=42)
+    #pca = PCA(n_components=150, whiten=True, random_state=42)
     #svc = svm.SVC(kernel='rbf', class_weight='balanced')
-    logisticr = LogisticRegression()
-    model = make_pipeline(pca,logisticr)
+    model = LogisticRegression()
     #clf = svm.LinearSVC()
     return model
 
@@ -100,21 +99,24 @@ def print_accuracy(clf, x_train, y_train, x_test, y_test):
 
 if __name__ == '__main__':
     data,label = load_data(root)
-    x_train, x_test, y_train, y_test = train_test_split(data, label, test_size=0.3, random_state=0)
+    print(len(data))
+    x_train, x_test, y_train, y_test = train_test_split(data, label,test_size=0.3, random_state=0)
+    print(len(x_train))
     x_train = np.array(x_train)
     x_test = np.array(x_test)
     y_train = np.array(y_train)
     y_test = np.array(y_test)
     model = classifier()
-    print(model.get_params().keys())
-    param_grid = {'logisticregression__C': [0.0001,1, 5, 10,100,1000]
+    #print(model.get_params().keys())
+    #param_grid = {'C': [0.0001,1, 5, 10,100,1000]
                   #'logisticr__': [0.0001, 0.0005, 0.001]
-                  }
-    grid = GridSearchCV(model, param_grid)
-    grid.fit(preprocessing.scale(x_train.reshape(2100,-1)), y_train)
-    print(grid.best_params_)
-    model = grid.best_estimator_
-    y_predict = model.predict(preprocessing.scale(x_test.reshape(900,-1)))
+                  #}
+    #grid = GridSearchCV(model, param_grid)
+    #grid.fit(preprocessing.scale(x_train.reshape(2100,-1)), y_train)
+    #print(grid.best_params_)
+    #model = grid.best_estimator_
+    model.fit(preprocessing.scale(x_train.reshape(3371, -1)), y_train)
+    y_predict = model.predict(preprocessing.scale(x_test.reshape(1445,-1)))
     #fig, ax = plt.subplots(4, 6)
     #for i, axi in enumerate(ax.flat):
     #    axi.imshow(x_test[i].reshape(512, 512), cmap='bone')
@@ -125,7 +127,7 @@ if __name__ == '__main__':
     #fig.show()
 
 
-
+    print(model.score(preprocessing.scale(x_test.reshape(1445,-1)),y_test))
     print(classification_report(y_test, y_predict))
 
 

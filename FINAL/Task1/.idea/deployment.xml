@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="uceelll@ssh.ee.ucl.ac.uk:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="uceelll@athens.ee.ucl.ac.uk:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="uceelll@ssh.ee.ucl.ac.uk:22 password">
+      <paths name="uceelll@athens.ee.ucl.ac.uk:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/amls_final_llc" local="$PROJECT_DIR$" />
+            <mapping deploy="/" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
