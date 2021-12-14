@@ -17,6 +17,9 @@ import sys
 from pytorchtool import EarlyStopping
 
 start=time.time()
+os.environ["CUDA_VISIBLE_DEVICES"] = '2,3'
+
+
 
 CATEGORY_INDEX = {
     "no_tumor": 0,
@@ -26,7 +29,7 @@ CATEGORY_INDEX = {
 }
 root = './dataset/image/'
 directory = './dataset/label.csv'
-device = torch.device('cpu')
+device = torch.device('cuda')
 #########trail
 #root = './dataset/image_trail/'
 #directory = './dataset/binary_trail.csv'
@@ -72,7 +75,7 @@ def fit(epoch,model,trainloader,testloder):
 
         sys.stdout.write(
             '\r epoch: %d, [iter: %d / all %d], loss: %f' \
-            % (epoch, batch_idx + 1, len(trainloader), loss.detach().numpy()))
+            % (epoch, batch_idx + 1, len(trainloader), loss.cpu().detach().numpy()))
         sys.stdout.flush()
 
 
@@ -118,9 +121,9 @@ def fit(epoch,model,trainloader,testloder):
 if __name__ == '__main__':
 
 
-    model = torchvision.models.vgg16(pretrained = True)
+    model = torchvision.models.vgg16(pretrained = False)
     print(model)
-    model = model.to(device)
+
 
     #for p in model.features.parameters():
     #    # freeze part parameters
@@ -129,13 +132,20 @@ if __name__ == '__main__':
 
     # change out_features from 1000 to 4
     model.classifier[-1].out_features = 4
+    #model = model.to(device)
     #model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
     #print(model)
+    #print(torch.cuda.is_available())
+    #print(torch.cuda.device_count())
+    device_id = [0,1]
+    model = nn.DataParallel(model,device_id)
+    #device = torch.device("cuda")
+    model.to(device)
 
     #initialization
     #for m in model.parameters():
     #    nn.init.kaiming_normal_(m, a=0, mode='fan_out', nonlinearity='relu')
-
+    #model = nn.DataParallel(model)
 
 
     # 只需要优化model.classifier的参数
@@ -148,14 +158,13 @@ if __name__ == '__main__':
     #train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[240, 61],
     #                                                            generator=torch.Generator().manual_seed(3))
     train_dataset, test_dataset = torch.utils.data.random_split(dataset=dataset_all, lengths=[2100, 900],generator=torch.Generator().manual_seed(0))
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=0)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=256, shuffle=True, num_workers=0)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=0)
     #train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=0)
     #test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, num_workers=0)
     #load model
     #model = VGG_16()
-    device = torch.device('cpu')
-    model = model.to(device)
+
     #########parameter setting############
     n_epoch = 50
     learning_rate = 0.0002
@@ -172,7 +181,7 @@ if __name__ == '__main__':
     test_loss=[]
     test_acc=[]
 
-    early_stopping = EarlyStopping(patience=7, verbose=True)
+    early_stopping = EarlyStopping(patience=3, verbose=True)
     for epoch in range(n_epoch):
         epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_loader,test_loader)
         train_loss.append(epoch_loss)

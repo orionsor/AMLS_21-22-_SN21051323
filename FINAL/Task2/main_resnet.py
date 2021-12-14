@@ -17,7 +17,8 @@ import sys
 from pytorchtool import EarlyStopping
 
 start=time.time()
-
+os.environ["CUDA_VISIBLE_DEVICES"] = '2,3'
+device = torch.device("cuda")
 CATEGORY_INDEX = {
     "no_tumor": 0,
     "meningioma_tumor": 1,
@@ -26,7 +27,7 @@ CATEGORY_INDEX = {
 }
 root = './dataset/image/'
 directory = './dataset/label.csv'
-device = torch.device('cpu')
+device = torch.device('cuda')
 #########trail
 #root = './dataset/image_trail/'
 #directory = './dataset/binary_trail.csv'
@@ -72,7 +73,7 @@ def fit(epoch,model,trainloader,testloder):
 
         sys.stdout.write(
             '\r epoch: %d, [iter: %d / all %d], loss: %f' \
-            % (epoch, batch_idx + 1, len(trainloader), loss.detach().numpy()))
+            % (epoch, batch_idx + 1, len(trainloader), loss.cpu().detach().numpy()))
         sys.stdout.flush()
 
 
@@ -118,9 +119,9 @@ def fit(epoch,model,trainloader,testloder):
 if __name__ == '__main__':
 
 
-    model = torchvision.models.resnet18(pretrained=False)
+    model = torchvision.models.resnet18(pretrained=True)
     print(model)
-    model = model.to(device)
+    #model = model.to(device)
 
     #for p in model.features.parameters():
     #    # freeze part parameters
@@ -136,7 +137,9 @@ if __name__ == '__main__':
     #for m in model.parameters():
     #    nn.init.kaiming_normal_(m, a=0, mode='fan_out', nonlinearity='relu')
 
-
+    device_id = [0, 1]
+    model = nn.DataParallel(model, device_id)
+    model.to(device)
 
     # 只需要优化model.classifier的参数
     #optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=0.0001)
@@ -154,8 +157,7 @@ if __name__ == '__main__':
     #test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, num_workers=0)
     #load model
     #model = VGG_16()
-    device = torch.device('cpu')
-    model = model.to(device)
+
     #########parameter setting############
     n_epoch = 50
     learning_rate = 0.0002
@@ -172,7 +174,7 @@ if __name__ == '__main__':
     test_loss=[]
     test_acc=[]
 
-    early_stopping = EarlyStopping(patience=10, verbose=True)
+    early_stopping = EarlyStopping(patience=7, verbose=True)
     for epoch in range(n_epoch):
         epoch_loss,epoch_acc,epoch_test_loss,epoch_test_acc = fit(epoch,model,train_loader,test_loader)
         train_loss.append(epoch_loss)
@@ -222,7 +224,8 @@ if __name__ == '__main__':
     plt.plot(range(1,n+1),test_acc,label='test_acc',color = 'r')
 
     plt.legend()
-    plt.savefig('./plot_res.jpg')
+    plt.suptitle('Learning Curves for ResNet18')
+    plt.savefig('./plot_res18.jpg')
     plt.show()
 
 

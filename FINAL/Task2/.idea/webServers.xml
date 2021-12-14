@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="49d1d1ea-1fea-4e33-a6d8-b1e737e387f0" name="t2">
+        <fileTransfer rootFolder="/home/uceelll/AMLS_21-22-_SN21051323/Task2" accessType="SFTP" host="athens.ee.ucl.ac.uk" port="22" sshConfigId="b000848a-a6ee-48d5-bc04-65054f34c12a" sshConfig="uceelll@athens.ee.ucl.ac.uk:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
