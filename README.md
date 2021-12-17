@@ -42,7 +42,7 @@
  4. 'main_vgg16.py' contains training and tesing of VGG 16. the rest is the same as above.
  5. 'main_vgg19.py' contains training and tesing of VGG 19. the rest is the same as above.
  6. 'main_test.py', additional test set is input to an optimized model of ResNet 50 which is save in advance as 'Final/Task2/modelterm_best_res50_lr.pth'. Test set is saved at 'Final/Task2/dataset/test'
- 7. 'pytorchtools.py' contains the function of earlystopping which is called by other files.
+ 7. 'pytorchtools.py' contains the function of earlystopping which is called by other files. Related code is from the open source https://github.com/Bjarten/early-stopping-pytorch/blob/master/pytorchtools.py
  
  ## Necessary Library
  the code run locally with python 3.6.8. following libriaries are used:
