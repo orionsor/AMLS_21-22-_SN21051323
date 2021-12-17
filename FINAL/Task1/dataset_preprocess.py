@@ -2,10 +2,9 @@ import pandas as pd
 import numpy as np
 import os
 import cv2 as cv
-import matplotlib.pyplot as plt
 from PIL import Image
 import pickle
-from skimage import data, exposure, img_as_float
+
 
 root = './dataset/image/'
 CATEGORY_INDEX = {
@@ -13,15 +12,9 @@ CATEGORY_INDEX = {
     "positive": 1
 }
 def make_raw_dataset(root, rawlist):
-    """#######################################
-    导入并解析源域可见光数据，生成原始数据文件
-    input：
-
-    output：
-
-    note：
-
-    #######################################"""
+    """Import images and labels, implement data augmentation to balance dataset,
+       generate and save files of data and labels for later used in main module.
+    """
 
     dataset = []
 
@@ -55,6 +48,11 @@ def make_raw_dataset(root, rawlist):
     return dataset, label
 
 def data_aug(im,label):
+    """Data Augmentation:
+    1.rotate image 180 degrees,
+    2.flip image from left to right
+    3.decrease image brightness
+    4.equalize Histogram of image to increase contrast """
     images = []
     labels = []
     images.append(im)
@@ -62,11 +60,12 @@ def data_aug(im,label):
     images.append(out1)
     out2 = im.transpose(Image.FLIP_LEFT_RIGHT)
     images.append(out2)
-    im = img_as_float(im)
-    out3 = exposure.adjust_gamma(im, 1.5)  # 调暗
+    im = np.array(im, dtype=np.uint8)
+    out3 = im * 0.5
     images.append(out3)
-    out4 = exposure.adjust_gamma(im, 0.75)  # 调亮
+    out4 = cv.equalizeHist(im)
     images.append(out4)
+
     for num in range(len(images)):
         labels.append(label)
     return images, labels
