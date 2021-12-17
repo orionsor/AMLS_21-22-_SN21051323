@@ -13,6 +13,8 @@ root = './dataset/image/'
 directory = './dataset/label.csv'
 
 class raw_dataset(Dataset):
+    """import and package raw data into dataset
+       data preprocessing with transforms: 1.resize 2.to tensor 3. normalize"""
     def __init__(self, root,directory):
         self.img, self.label = self.read_dataset(directory)
         self.root = root
@@ -27,20 +29,15 @@ class raw_dataset(Dataset):
         #data = Image.open(img_path)
         data = cv.imread(img_path)
         data = Image.fromarray(np.array(data))
+        """From grayscale to 3-channel RGB image """
         data = data.convert("RGB")
-        #test = np.array(data)
+        """resize to meet fixed input size of ResNet/VGG """
         image = data.resize((224, 224), Image.ANTIALIAS)
         image = np.array(image, dtype=np.uint8)
+        """show image for debug"""
         #cv.imshow("Image",image)
         #cv.waitKey(0)
-        #image = np.reshape(data,(224, 224,3))
-        #image = np.array(image, dtype=np.uint8)
-        #if data.mode != "RGB":
-        #    data = data.convert("RGB")
         image = self.transforms(image)
-        #image = torch.from_numpy(image)
-        #image = image.numpy()
-        #image = torch.Tensor(image)
         labels = self.label[index]
         return image, labels
 
@@ -54,6 +51,8 @@ class raw_dataset(Dataset):
             "pituitary_tumor": 2,
             "glioma_tumor": 3
         }
+
+        """import data """
         FileList = pd.read_csv(directory)
         filename = FileList['file_name'].values
         filename = (filename).tolist()

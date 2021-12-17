@@ -103,8 +103,8 @@ if __name__ == '__main__':
     y_train = np.array(y_train)
     y_test = np.array(y_test)
     model = classifier()
-    param_grid = {'svc__C': [1, 5, 10],
-                  'svc__gamma': [0.0001, 0.0005, 0.001]}
+    param_grid = {'svc__C': [1, 5, 10,15],
+                  'svc__gamma': [0.0001, 0.0005, 0.001,0.1,1]}
     grid = GridSearchCV(model, param_grid)
     grid.fit(preprocessing.scale(x_train.reshape(2100,-1)), y_train)
     print(grid.best_params_)

@@ -1,9 +1,5 @@
 import torch
-import torch.nn as nn
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import torch.nn.functional as F
 import torchvision
 import time
 import os
@@ -11,17 +7,17 @@ import shutil
 from torchvision import datasets,transforms
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
-from dataset_test import *
+from dataset_rgb import *
 import sys
 
+"""Test additional dataset on ResNet 50"""
 
-from pytorchtool import EarlyStopping
-
-
-start=time.time()
-os.environ["CUDA_VISIBLE_DEVICES"] = '2,3'
-device = torch.device("cuda")
+"""model is run on UCL server with 4 GPU, any 2 id from 0 to 3
+   can be used here, depending on which 2 is available"""
+os.environ["CUDA_VISIBLE_DEVICES"] = '0,3'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+"""Please use code below is CUDA out of memory occurs"""
+#device = torch.device('cpu')
 
 CATEGORY_INDEX = {
     "no_tumor": 0,
@@ -56,8 +52,6 @@ with torch.no_grad():
         print("\ntest-result",y_pred)
         test_correct += (y_pred == y).sum().item()
         test_total += y.size(0)
-        #test_running_loss += loss.item()
-
 
 test_acc = test_correct / test_total
 
